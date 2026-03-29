@@ -48,7 +48,7 @@ class MainWindow(ctk.CTkFrame):
             segmented_button_selected_hover_color=T.NEON_GREEN + "CC",
             segmented_button_unselected_color=T.BG_CARD,
             segmented_button_unselected_hover_color=T.BG_CARD_HOVER,
-            text_color=T.BG_DARK,
+            text_color=(T.TEXT_PRIMARY, T.BG_DARK),
             corner_radius=T.CORNER_RADIUS,
         )
         self._tabview.pack(fill="both", expand=True, padx=12, pady=(6, 4))
