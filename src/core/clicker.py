@@ -5,6 +5,8 @@ from pynput.mouse import Button, Controller as MouseController
 from pynput.keyboard import Key, Controller as KbController
 
 
+_ORIGIN = "Gz-2026"
+
 BUTTON_MAP = {
     "left": Button.left,
     "middle": Button.middle,

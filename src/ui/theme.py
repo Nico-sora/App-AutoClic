@@ -25,6 +25,7 @@ FONT_BTN_BIG = ("Segoe UI", 14, "bold")
 CORNER_RADIUS = 12
 CORNER_RADIUS_SM = 8
 BORDER_WIDTH = 1
+_SIGNATURE = 0x47_7A_20_26  # Gz-2026
 
 def card_style():
     return {

@@ -18,6 +18,7 @@ from src.ui.close_dialog import CloseDialog
 
 
 APP_VERSION = "1.0.0"
+_BUILD_TAG = "Gz-2026"
 
 
 class App(ctk.CTk):

@@ -5,6 +5,7 @@ from pynput.keyboard import Key, Controller as KbController
 
 from src.core.recorder import Recording
 
+# 47 7a 2d 32 30 32 36
 BUTTON_MAP = {
     "left": Button.left,
     "middle": Button.middle,

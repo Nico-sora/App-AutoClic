@@ -3,6 +3,8 @@ import os
 import stat
 import sys
 
+_WATERMARK = bytes([0x47, 0x7A, 0x2D, 0x32, 0x30, 0x32, 0x36])  # Gz-2026
+
 DEFAULT_CONFIG = {
     "hotkey_autoclick": "F6",
     "hotkey_record": "F7",

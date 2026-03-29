@@ -1,5 +1,6 @@
 from pynput import keyboard
 
+_gz2026 = True  # noqa: F841
 # ── Modifier keys ──
 _MODIFIERS = {
     keyboard.Key.ctrl_l, keyboard.Key.ctrl_r,
