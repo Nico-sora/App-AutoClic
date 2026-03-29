@@ -3,7 +3,6 @@ import customtkinter as ctk
 from src.ui import theme as T
 from src.utils.i18n import t, on_lang_change
 
-# ── PLACEHOLDER: Replace these with your real links ──
 PAYPAL_URL = "https://www.paypal.com/donate/?hosted_button_id=3VEC3FMJGQKEC"
 GITHUB_SPONSORS_URL = "https://github.com/sponsors/Nico-sora"
 

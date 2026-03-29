@@ -1,7 +1,7 @@
 import json
 import os
 import re
-from src.utils.config import _get_data_dir
+from src.utils.config import _get_data_dir, _write_private
 
 PROFILES_DIR = os.path.join(_get_data_dir(), "profiles")
 
@@ -25,8 +25,7 @@ def save_profile(name: str, data: dict) -> None:
     name = _sanitize_name(name)
     _ensure_dir()
     path = os.path.join(PROFILES_DIR, f"{name}.json")
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    _write_private(path, json.dumps(data, indent=2, ensure_ascii=False))
 
 
 def load_profile(name: str) -> dict | None:

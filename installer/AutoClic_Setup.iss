@@ -80,7 +80,7 @@ Name: "{group}\AutoClic"; Filename: "{app}\AutoClic.exe"; IconFilename: "{app}\A
 Name: "{group}\Desinstalar AutoClic"; Filename: "{uninstallexe}"; Tasks: startmenu
 
 [Run]
-Filename: "{app}\AutoClic.exe"; Description: "{cm:LaunchNow}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\AutoClic.exe"; Description: "{cm:LaunchNow}"; Flags: nowait postinstall skipifsilent shellexec
 
 [Code]
 procedure CurStepChanged(CurStep: TSetupStep);
@@ -122,9 +122,21 @@ begin
   end;
 end;
 
-[UninstallDelete]
-; User data lives in %APPDATA%\AutoClic Gz
-Type: files; Name: "{userappdata}\AutoClic Gz\config.json"
-Type: files; Name: "{userappdata}\AutoClic Gz\session_log.json"
-Type: filesandordirs; Name: "{userappdata}\AutoClic Gz\profiles"
-Type: dirifempty; Name: "{userappdata}\AutoClic Gz"
+// Ask the user whether to delete their data on uninstall
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  DataDir: String;
+begin
+  if CurUninstallStep = usPostUninstall then
+  begin
+    DataDir := ExpandConstant('{userappdata}\AutoClic Gz');
+    if DirExists(DataDir) then
+    begin
+      if MsgBox('¿Eliminar datos de usuario (configuración, perfiles, historial)?',
+                mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES then
+      begin
+        DelTree(DataDir, True, True, True);
+      end;
+    end;
+  end;
+end;

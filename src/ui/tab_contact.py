@@ -7,7 +7,10 @@ from src.utils.i18n import t, on_lang_change
 
 _EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
 
-CONTACT_EMAIL = "nico.delpuerto.2000@gmail.com"
+# Split to avoid trivial string extraction from binary
+_USER = "nico.delpuerto.2000"
+_DOMAIN = "gmail.com"
+CONTACT_EMAIL = f"{_USER}@{_DOMAIN}"
 
 SUBJECT_KEYS = [
     "contact_subject_bug",

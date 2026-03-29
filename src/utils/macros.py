@@ -3,7 +3,7 @@
 import json
 import os
 import re
-from src.utils.config import _get_data_dir
+from src.utils.config import _get_data_dir, _write_private
 
 MACROS_DIR = os.path.join(_get_data_dir(), "macros")
 
@@ -27,8 +27,7 @@ def save_macro(name: str, data: list) -> None:
     name = _sanitize_name(name)
     _ensure_dir()
     path = os.path.join(MACROS_DIR, f"{name}.json")
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    _write_private(path, json.dumps(data, indent=2, ensure_ascii=False))
 
 
 def load_macro(name: str) -> list | None:

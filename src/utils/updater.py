@@ -1,5 +1,6 @@
 """Simple update checker for AutoClic."""
 
+import ssl
 import threading
 import urllib.request
 import json
@@ -25,7 +26,8 @@ def check_for_update(current_version: str, callback: callable):
                 UPDATE_CHECK_URL,
                 headers={"User-Agent": "AutoClic-UpdateChecker"}
             )
-            with urllib.request.urlopen(req, timeout=10) as resp:
+            ctx = ssl.create_default_context()
+            with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
 
             # Support both GitHub releases API and simple JSON

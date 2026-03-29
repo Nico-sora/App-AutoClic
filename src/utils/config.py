@@ -1,5 +1,6 @@
 import json
 import os
+import stat
 import sys
 
 DEFAULT_CONFIG = {
@@ -41,6 +42,16 @@ def load_config() -> dict:
         return dict(DEFAULT_CONFIG)
 
 
+def _write_private(path: str, content: str) -> None:
+    """Write file with owner-only permissions (0o600)."""
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, stat.S_IRUSR | stat.S_IWUSR)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(content)
+    except Exception:
+        os.close(fd)
+        raise
+
+
 def save_config(config: dict) -> None:
-    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=2, ensure_ascii=False)
+    _write_private(CONFIG_PATH, json.dumps(config, indent=2, ensure_ascii=False))
