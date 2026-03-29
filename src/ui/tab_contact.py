@@ -1,8 +1,11 @@
+import re
 import webbrowser
 from urllib.parse import quote
 import customtkinter as ctk
 from src.ui import theme as T
 from src.utils.i18n import t, on_lang_change
+
+_EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
 
 CONTACT_EMAIL = "nico.delpuerto.2000@gmail.com"
 
@@ -120,10 +123,10 @@ class TabContact(ctk.CTkFrame):
         self.after(3000, lambda: self._validation.configure(text=""))
 
     def _send(self):
-        email = self._email_entry.get().strip()
+        email = self._email_entry.get().strip()[:254]
         message = self._textbox.get("1.0", "end-1c").strip()
 
-        if not email:
+        if not email or not _EMAIL_RE.match(email):
             self._show_validation("contact_error_email")
             return
         if not message:

@@ -515,19 +515,26 @@ class TabAutoClick(ctk.CTkFrame):
         listener.start()
 
     # ── Helpers ──
+    @staticmethod
+    def _safe_int(value: str, default: int = 0) -> int:
+        try:
+            return int(value or default)
+        except (ValueError, TypeError):
+            return default
+
     def _get_interval_ms(self) -> int:
-        h = int(self._h_int.get() or 0)
-        m = int(self._m_int.get() or 0)
-        s = int(self._s_int.get() or 0)
-        ms = int(self._ms_int.get() or 0)
+        h = self._safe_int(self._h_int.get())
+        m = self._safe_int(self._m_int.get())
+        s = self._safe_int(self._s_int.get())
+        ms = self._safe_int(self._ms_int.get())
         return (h * 3600 + m * 60 + s) * 1000 + ms
 
     def _get_duration_ms(self) -> int:
         if self._dur_var.get() == "infinito":
             return 0
-        h = int(self._h_dur.get() or 0)
-        m = int(self._m_dur.get() or 0)
-        s = int(self._s_dur.get() or 0)
+        h = self._safe_int(self._h_dur.get())
+        m = self._safe_int(self._m_dur.get())
+        s = self._safe_int(self._s_dur.get())
         return (h * 3600 + m * 60 + s) * 1000
 
     # ── Start / Stop ──

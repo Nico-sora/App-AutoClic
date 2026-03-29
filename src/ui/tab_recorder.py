@@ -217,12 +217,21 @@ class TabRecorder(ctk.CTkFrame):
             recording = self._recorder.recording
             if not recording.events:
                 return
-            repeat = int(self._repeat_var.get() or 1)
+            try:
+                repeat = int(self._repeat_var.get() or 1)
+            except (ValueError, TypeError):
+                repeat = 1
             speed_str = self._speed_var.get().replace("x", "")
-            speed = float(speed_str) if speed_str else 1.0
-            h = int(self._int_h.get() or 0)
-            m = int(self._int_m.get() or 0)
-            s = int(self._int_s.get() or 0)
+            try:
+                speed = float(speed_str) if speed_str else 1.0
+            except (ValueError, TypeError):
+                speed = 1.0
+            try:
+                h = int(self._int_h.get() or 0)
+                m = int(self._int_m.get() or 0)
+                s = int(self._int_s.get() or 0)
+            except (ValueError, TypeError):
+                h, m, s = 0, 0, 0
             interval_ms = (h * 3600 + m * 60 + s) * 1000
             self._player.play(recording, repeat=repeat, speed=speed, interval_ms=interval_ms)
             self._play_btn.configure(text=t("btn_stop_play", hk=self._hk_play()), **T.neon_btn_style(T.NEON_RED))

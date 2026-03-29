@@ -4,6 +4,11 @@ from dataclasses import dataclass, field
 from pynput import mouse, keyboard
 
 
+VALID_EVENT_TYPES = {"click", "move", "key_press", "key_release"}
+VALID_EVENT_FIELDS = {"event_type", "timestamp", "x", "y", "button", "key", "delay"}
+MAX_RECORDING_EVENTS = 50_000
+
+
 @dataclass
 class RecordedEvent:
     event_type: str  # "click", "move", "key_press", "key_release"
@@ -46,9 +51,15 @@ class Recording:
 
     @classmethod
     def from_list(cls, data: list[dict]) -> "Recording":
+        if len(data) > MAX_RECORDING_EVENTS:
+            raise ValueError(f"Recording exceeds max events ({MAX_RECORDING_EVENTS})")
         events = []
         for d in data:
-            events.append(RecordedEvent(**d))
+            # Only allow known fields
+            filtered = {k: v for k, v in d.items() if k in VALID_EVENT_FIELDS}
+            if filtered.get("event_type") not in VALID_EVENT_TYPES:
+                continue  # Skip invalid events
+            events.append(RecordedEvent(**filtered))
         return cls(events=events)
 
 

@@ -3,10 +3,13 @@
 import threading
 import urllib.request
 import json
+from urllib.parse import urlparse
 
 # Change this URL when you publish your app.
 # It should return JSON: {"version": "1.2.0", "url": "https://..."}
-UPDATE_CHECK_URL = "https://api.github.com/repos/YOUR_USER/AutoClic/releases/latest"
+UPDATE_CHECK_URL = "https://api.github.com/repos/Nico-sora/App-AutoClic/releases/latest"
+
+ALLOWED_DOWNLOAD_HOSTS = {"github.com", "objects.githubusercontent.com"}
 
 
 def check_for_update(current_version: str, callback: callable):
@@ -30,12 +33,23 @@ def check_for_update(current_version: str, callback: callable):
             download_url = data.get("html_url", data.get("url", ""))
 
             if new_version and _is_newer(new_version, current_version):
+                if not _is_trusted_url(download_url):
+                    return
                 callback(new_version, download_url)
         except Exception:
             pass  # Silently fail — update check is optional
 
     thread = threading.Thread(target=_check, daemon=True)
     thread.start()
+
+
+def _is_trusted_url(url: str) -> bool:
+    """Only allow download URLs from trusted GitHub domains."""
+    try:
+        parsed = urlparse(url)
+        return parsed.scheme == "https" and parsed.hostname in ALLOWED_DOWNLOAD_HOSTS
+    except Exception:
+        return False
 
 
 def _is_newer(new: str, current: str) -> bool:

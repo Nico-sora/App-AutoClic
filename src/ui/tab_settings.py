@@ -25,7 +25,7 @@ THEME_I18N = [
 ]
 
 # Change this URL when you have your privacy policy published
-PRIVACY_URL = "https://example.com/privacy"
+PRIVACY_URL = "https://github.com/Nico-sora/App-AutoClic/blob/master/PRIVACY.md"
 
 
 class TabSettings(ctk.CTkFrame):
@@ -442,6 +442,7 @@ class TabSettings(ctk.CTkFrame):
     def _import_config(self):
         import os
         from src.utils.profiles import save_profile
+        from src.utils.config import DEFAULT_CONFIG
 
         path = filedialog.askopenfilename(
             title=t("btn_import_config"), filetypes=[("JSON", "*.json")],
@@ -455,14 +456,21 @@ class TabSettings(ctk.CTkFrame):
         except Exception:
             return
 
-        # Import config
+        # Import config — only allow known keys
         if "config" in data and isinstance(data["config"], dict):
-            save_config(data["config"])
+            allowed_keys = set(DEFAULT_CONFIG.keys())
+            filtered = {k: v for k, v in data["config"].items() if k in allowed_keys}
+            save_config(filtered)
 
-        # Import profiles
+        # Import profiles — sanitize names
         if "profiles" in data and isinstance(data["profiles"], dict):
             for name, profile_data in data["profiles"].items():
-                save_profile(name, profile_data)
+                if not isinstance(profile_data, dict):
+                    continue
+                try:
+                    save_profile(name, profile_data)
+                except ValueError:
+                    continue  # Skip profiles with invalid names
 
         self._status_label.configure(text=t("import_ok"))
         self.after(3000, lambda: self._status_label.configure(text=""))
