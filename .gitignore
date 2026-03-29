@@ -27,6 +27,9 @@ Desktop.ini
 
 # Claude Code
 .claude/
+CLAUDE.md
+INDICE.md
+docs/plans/
 
 # Profiles (user data)
 profiles/

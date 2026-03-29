@@ -10,6 +10,7 @@ from src.ui.tab_autoclick import TabAutoClick
 from src.ui.tab_recorder import TabRecorder
 from src.ui.tab_settings import TabSettings
 from src.ui.tab_donate import TabDonate
+from src.ui.tab_contact import TabContact
 
 
 class MainWindow(ctk.CTkFrame):
@@ -53,18 +54,20 @@ class MainWindow(ctk.CTkFrame):
         self._tabview.pack(fill="both", expand=True, padx=12, pady=(6, 4))
 
         # Tab names used as internal keys (never change)
-        self._tab_keys = ["  Auto Clic  ", "  Grabador  ", "  Configuración  ", "  Donar  "]
-        self._tab_i18n = ["tab_autoclick", "tab_recorder", "tab_settings", "tab_donate"]
+        self._tab_keys = ["  Auto Clic  ", "  Grabador  ", "  Configuración  ", "  Donar  ", "  Contacto  "]
+        self._tab_i18n = ["tab_autoclick", "tab_recorder", "tab_settings", "tab_donate", "tab_contact"]
 
         tab1 = self._tabview.add(self._tab_keys[0])
         tab2 = self._tabview.add(self._tab_keys[1])
         tab3 = self._tabview.add(self._tab_keys[2])
         tab4 = self._tabview.add(self._tab_keys[3])
+        tab5 = self._tabview.add(self._tab_keys[4])
 
         tab1.configure(fg_color=T.BG_DARK)
         tab2.configure(fg_color=T.BG_DARK)
         tab3.configure(fg_color=T.BG_DARK)
         tab4.configure(fg_color=T.BG_DARK)
+        tab5.configure(fg_color=T.BG_DARK)
 
         self.tab_autoclick = TabAutoClick(tab1, clicker)
         self.tab_autoclick.pack(fill="both", expand=True)
@@ -78,6 +81,9 @@ class MainWindow(ctk.CTkFrame):
 
         self.tab_donate = TabDonate(tab4)
         self.tab_donate.pack(fill="both", expand=True)
+
+        self.tab_contact = TabContact(tab5)
+        self.tab_contact.pack(fill="both", expand=True)
 
         # ── Status bar ──
         self._statusbar = ctk.CTkFrame(self, fg_color=T.BG_CARD, height=30, corner_radius=0)
