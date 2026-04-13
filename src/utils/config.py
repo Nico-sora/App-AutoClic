@@ -17,6 +17,10 @@ DEFAULT_CONFIG = {
     "notify_on_finish": True,
     "autoclick_state": {},
     "last_recording": [],
+    "hotkey_cycle_profile": "",
+    "hotkey_cycle_macro": "",
+    "cycle_profile_behavior": "stop_load",
+    "cycle_macro_behavior": "stop_load",
 }
 
 
