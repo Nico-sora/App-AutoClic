@@ -12,6 +12,7 @@ from src.utils.config import load_config, save_config
 from src.utils.hotkeys import HotkeyManager
 from src.utils.session_log import add_session
 from src.utils.i18n import set_lang
+from src.utils import error_log
 from src.ui import theme as T
 from src.ui.main_window import MainWindow
 from src.ui.close_dialog import CloseDialog
@@ -25,6 +26,9 @@ class App(ctk.CTk):
     def __init__(self):
         super().__init__()
 
+        # Install error logging early
+        error_log.install(APP_VERSION)
+
         self._config = load_config()
         self._tray_icon = None
         self._session_start: float | None = None
@@ -33,13 +37,15 @@ class App(ctk.CTk):
         saved_lang = self._config.get("language", "es")
         set_lang(saved_lang)
 
-        ctk.set_appearance_mode("dark")
+        # Apply saved theme
+        saved_theme = self._config.get("theme", "dark")
+        ctk.set_appearance_mode(saved_theme)
         ctk.set_default_color_theme("blue")
 
         self.title("AutoClic")
         self.geometry("580x750")
-        self.minsize(520, 650)
-        self.configure(fg_color=T.BG_DARK)
+        self.minsize(400, 500)
+        self.configure(fg_color=T.bg())
 
         # Splash screen
         from src.ui.splash import SplashScreen
@@ -106,7 +112,6 @@ class App(ctk.CTk):
     @staticmethod
     def _resolve_asset(*parts) -> str | None:
         """Resolve asset path for both dev and PyInstaller bundled mode."""
-        # PyInstaller sets _MEIPASS for bundled app
         base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         path = os.path.join(base, *parts)
         return path if os.path.exists(path) else None
@@ -116,6 +121,8 @@ class App(ctk.CTk):
         hk_ac = config.get("hotkey_autoclick", "F6")
         hk_rec = config.get("hotkey_record", "F7")
         hk_play = config.get("hotkey_play", "F8")
+        hk_cp = config.get("hotkey_cycle_profile", "")
+        hk_cm = config.get("hotkey_cycle_macro", "")
 
         if hk_ac:
             self._hotkey_mgr.bind(hk_ac, self._toggle_autoclick)
@@ -123,6 +130,10 @@ class App(ctk.CTk):
             self._hotkey_mgr.bind(hk_rec, self._toggle_record)
         if hk_play:
             self._hotkey_mgr.bind(hk_play, self._toggle_play)
+        if hk_cp:
+            self._hotkey_mgr.bind(hk_cp, self._cycle_profile)
+        if hk_cm:
+            self._hotkey_mgr.bind(hk_cm, self._cycle_macro)
 
     def _toggle_autoclick(self):
         self.after(0, self._main_window.tab_autoclick.toggle)
@@ -132,6 +143,79 @@ class App(ctk.CTk):
 
     def _toggle_play(self):
         self.after(0, self._main_window.tab_recorder.toggle_play)
+
+    def _cycle_profile(self):
+        self.after(0, self._do_cycle_profile)
+
+    def _do_cycle_profile(self):
+        from src.utils.profiles import list_profiles, load_profile
+        profiles = list_profiles()
+        if not profiles:
+            return
+        tab = self._main_window.tab_autoclick
+        current = tab._profile_var.get()
+        try:
+            idx = profiles.index(current)
+            next_idx = (idx + 1) % len(profiles)
+        except ValueError:
+            next_idx = 0
+        next_name = profiles[next_idx]
+        data = load_profile(next_name)
+        if data is None:
+            return
+
+        behavior = load_config().get("cycle_profile_behavior", "stop_load")
+        if behavior == "stop_load":
+            if self._clicker.is_running:
+                tab.toggle()
+            tab._set_state(data)
+            tab._profile_var.set(next_name)
+        elif behavior == "load_start":
+            was_running = self._clicker.is_running
+            if was_running:
+                self._clicker.stop()
+            tab._set_state(data)
+            tab._profile_var.set(next_name)
+            tab.toggle()
+        elif behavior == "select":
+            tab._set_state(data)
+            tab._profile_var.set(next_name)
+
+    def _cycle_macro(self):
+        self.after(0, self._do_cycle_macro)
+
+    def _do_cycle_macro(self):
+        from src.utils.macros import list_macros, load_macro
+        macros = list_macros()
+        if not macros:
+            return
+        tab = self._main_window.tab_recorder
+        current = tab._macro_var.get()
+        try:
+            idx = macros.index(current)
+            next_idx = (idx + 1) % len(macros)
+        except ValueError:
+            next_idx = 0
+        next_name = macros[next_idx]
+        data = load_macro(next_name)
+        if data is None:
+            return
+
+        behavior = load_config().get("cycle_macro_behavior", "stop_load")
+        if behavior == "stop_load":
+            if self._player.is_playing:
+                self._player.stop()
+            tab._macro_var.set(next_name)
+            self._recorder.recording = Recording.from_list(data)
+        elif behavior == "load_start":
+            if self._player.is_playing:
+                self._player.stop()
+            tab._macro_var.set(next_name)
+            self._recorder.recording = Recording.from_list(data)
+            tab.toggle_play()
+        elif behavior == "select":
+            tab._macro_var.set(next_name)
+            self._recorder.recording = Recording.from_list(data)
 
     def _set_topmost(self, value: bool):
         self.attributes("-topmost", value)
@@ -164,7 +248,6 @@ class App(ctk.CTk):
 
         self.withdraw()
 
-        # Use app icon or fallback to generated one
         if hasattr(self, "_icon_image"):
             img = self._icon_image.copy()
             img.thumbnail((64, 64))
@@ -208,12 +291,9 @@ class App(ctk.CTk):
             self._main_window.tab_recorder._refresh_events()
 
     def _save_state(self):
-        # Reload from disk to preserve any settings saved by tab_settings
         fresh_config = load_config()
-
         fresh_config["autoclick_state"] = self._main_window.tab_autoclick._get_state()
         fresh_config["last_recording"] = self._recorder.recording.to_list()
-
         save_config(fresh_config)
 
     # ── Close handling ──
@@ -238,10 +318,8 @@ class App(ctk.CTk):
             self._do_quit()
 
     def _do_quit(self):
-        # Save state before quitting
         self._save_state()
 
-        # Log final session if running
         if self._session_start is not None:
             duration = time.time() - self._session_start
             add_session(self._clicker.click_count, duration, "autoclick")
