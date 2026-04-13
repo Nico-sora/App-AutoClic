@@ -10,12 +10,13 @@ from src.utils.profiles import save_profile, load_profile, list_profiles, delete
 
 class TabAutoClick(ctk.CTkFrame):
     def __init__(self, master, clicker: Clicker, **kwargs):
-        super().__init__(master, fg_color=T.BG_DARK, **kwargs)
+        super().__init__(master, fg_color=T.bg(), **kwargs)
         self._clicker = clicker
         self._picking_pos = False
         self._picking_zone_step = 0
         self._countdown_id = None
         self._widgets = {}
+        self._sec_frames = {}
         self._build_ui()
         on_lang_change(self._refresh_lang)
 
@@ -24,18 +25,19 @@ class TabAutoClick(ctk.CTkFrame):
         frame.pack(fill="x", padx=8, pady=4)
         header = ctk.CTkFrame(frame, fg_color="transparent")
         header.pack(fill="x", padx=14, pady=(10, 2))
-        lbl = ctk.CTkLabel(header, text=f"{icon}  {t(title_key)}", font=T.FONT_SECTION, text_color=T.NEON_CYAN)
+        lbl = ctk.CTkLabel(header, text=f"{icon}  {t(title_key)}", font=T.FONT_SECTION, text_color=T.text_primary())
         lbl.pack(anchor="w")
         self._widgets[f"sec_{title_key}"] = (lbl, title_key, icon)
+        self._sec_frames[title_key] = frame
         return frame
 
     def _build_ui(self):
-        scroll = ctk.CTkScrollableFrame(self, fg_color=T.BG_DARK)
+        scroll = ctk.CTkScrollableFrame(self, fg_color=T.bg())
         scroll.pack(fill="both", expand=True)
         self._scroll = scroll
 
         # ── Perfiles ──
-        sec = self._section(scroll, "sec_profiles", "📁")
+        sec = self._section(scroll, "sec_profiles", "\U0001F4C1")
         body = ctk.CTkFrame(sec, fg_color="transparent")
         body.pack(fill="x", padx=14, pady=(4, 10))
 
@@ -49,28 +51,28 @@ class TabAutoClick(ctk.CTkFrame):
         )
         self._profile_menu.pack(side="left", padx=(0, 8))
 
-        self._btn_load = ctk.CTkButton(row, text=t("btn_load"), width=70, fg_color=T.BG_INPUT, hover_color=T.BG_CARD_HOVER,
-                       border_width=1, border_color=T.NEON_CYAN, text_color=T.NEON_CYAN,
+        self._btn_load = ctk.CTkButton(row, text=t("btn_load"), width=70, fg_color=T.bg_input(), hover_color=T.bg_card_hover(),
+                       border_width=1, border_color=T.neon_cyan(), text_color=T.neon_cyan(),
                        font=T.FONT_SMALL, command=self._load_profile)
         self._btn_load.pack(side="left", padx=2)
-        self._btn_save_p = ctk.CTkButton(row, text=t("btn_save"), width=70, fg_color=T.BG_INPUT, hover_color=T.BG_CARD_HOVER,
-                       border_width=1, border_color=T.NEON_GREEN, text_color=T.NEON_GREEN,
+        self._btn_save_p = ctk.CTkButton(row, text=t("btn_save"), width=70, fg_color=T.bg_input(), hover_color=T.bg_card_hover(),
+                       border_width=1, border_color=T.neon_green(), text_color=T.neon_green(),
                        font=T.FONT_SMALL, command=self._save_profile)
         self._btn_save_p.pack(side="left", padx=2)
-        self._btn_del = ctk.CTkButton(row, text=t("btn_delete"), width=70, fg_color=T.BG_INPUT, hover_color=T.BG_CARD_HOVER,
-                       border_width=1, border_color=T.NEON_RED, text_color=T.NEON_RED,
+        self._btn_del = ctk.CTkButton(row, text=t("btn_delete"), width=70, fg_color=T.bg_input(), hover_color=T.bg_card_hover(),
+                       border_width=1, border_color=T.neon_red(), text_color=T.neon_red(),
                        font=T.FONT_SMALL, command=self._delete_profile)
         self._btn_del.pack(side="left", padx=2)
 
         row2 = ctk.CTkFrame(body, fg_color="transparent")
         row2.pack(fill="x", pady=(4, 0))
-        self._lbl_name = ctk.CTkLabel(row2, text=t("name"), font=T.FONT_SMALL, text_color=T.TEXT_MUTED)
+        self._lbl_name = ctk.CTkLabel(row2, text=t("name"), font=T.FONT_SMALL, text_color=T.text_muted())
         self._lbl_name.pack(side="left", padx=(0, 6))
         self._profile_name_entry = ctk.CTkEntry(row2, width=180, placeholder_text=t("profile_name_placeholder"), **T.input_style())
         self._profile_name_entry.pack(side="left")
 
         # ── Tipo de acción ──
-        sec = self._section(scroll, "sec_action_type", "🖱")
+        sec = self._section(scroll, "sec_action_type", "\U0001F5B1")
         body = ctk.CTkFrame(sec, fg_color="transparent")
         body.pack(fill="x", padx=14, pady=(4, 10))
 
@@ -90,38 +92,33 @@ class TabAutoClick(ctk.CTkFrame):
         # Botón del mouse + tipo de clic
         self._frame_button = ctk.CTkFrame(body, fg_color="transparent")
         self._frame_button.pack(fill="x", pady=4)
-        self._lbl_btn = ctk.CTkLabel(self._frame_button, text=t("label_button"), font=T.FONT_BODY, text_color=T.TEXT_SECONDARY)
+        self._lbl_btn = ctk.CTkLabel(self._frame_button, text=t("label_button"), font=T.FONT_BODY, text_color=T.text_secondary())
         self._lbl_btn.pack(side="left", padx=(0, 8))
         self._button_var = ctk.StringVar(value=t("btn_left"))
         self._btn_menu = ctk.CTkOptionMenu(self._frame_button, variable=self._button_var,
                           values=[t("btn_left"), t("btn_middle"), t("btn_right")], width=120, **T.option_menu_style())
         self._btn_menu.pack(side="left", padx=(0, 16))
 
-        self._lbl_type = ctk.CTkLabel(self._frame_button, text=t("label_type"), font=T.FONT_BODY, text_color=T.TEXT_SECONDARY)
-        self._lbl_type.pack(side="left", padx=(0, 8))
         self._click_type_var = ctk.StringVar(value=t("click_single"))
-        self._type_menu = ctk.CTkOptionMenu(self._frame_button, variable=self._click_type_var,
-                          values=[t("click_single"), t("click_double"), t("click_triple")], width=100, **T.option_menu_style())
-        self._type_menu.pack(side="left")
 
         # Tecla personalizada
         self._frame_key = ctk.CTkFrame(body, fg_color="transparent")
         self._captured_key = ctk.StringVar(value="")
         self._listening_key = False
 
-        self._lbl_key = ctk.CTkLabel(self._frame_key, text=t("label_key"), font=T.FONT_BODY, text_color=T.TEXT_SECONDARY)
+        self._lbl_key = ctk.CTkLabel(self._frame_key, text=t("label_key"), font=T.FONT_BODY, text_color=T.text_secondary())
         self._lbl_key.pack(side="left", padx=(0, 8))
         self._key_display = ctk.CTkLabel(
             self._frame_key, text=t("none_selected"), width=100,
-            font=T.FONT_MONO, text_color=T.NEON_YELLOW,
-            fg_color=T.BG_INPUT, corner_radius=T.CORNER_RADIUS_SM,
+            font=T.FONT_MONO, text_color=T.neon_yellow(),
+            fg_color=T.bg_input(), corner_radius=T.CORNER_RADIUS_SM,
         )
         self._key_display.pack(side="left", padx=(0, 10))
         self._capture_btn = ctk.CTkButton(
             self._frame_key, text=t("btn_capture_key"), width=140,
-            fg_color=T.BG_INPUT, hover_color=T.BG_CARD_HOVER,
-            border_width=1, border_color=T.NEON_YELLOW,
-            text_color=T.NEON_YELLOW, font=T.FONT_SMALL,
+            fg_color=T.bg_input(), hover_color=T.bg_card_hover(),
+            border_width=1, border_color=T.neon_yellow(),
+            text_color=T.neon_yellow(), font=T.FONT_SMALL,
             command=self._start_key_capture,
         )
         self._capture_btn.pack(side="left")
@@ -130,7 +127,7 @@ class TabAutoClick(ctk.CTkFrame):
         self._frame_extra = ctk.CTkFrame(body, fg_color="transparent")
         self._extra_btn_var = ctk.StringVar(value=t("btn_back_x1"))
 
-        self._lbl_extra = ctk.CTkLabel(self._frame_extra, text=t("label_button"), font=T.FONT_BODY, text_color=T.TEXT_SECONDARY)
+        self._lbl_extra = ctk.CTkLabel(self._frame_extra, text=t("label_button"), font=T.FONT_BODY, text_color=T.text_secondary())
         self._lbl_extra.pack(side="left", padx=(0, 8))
         self._extra_menu = ctk.CTkOptionMenu(self._frame_extra, variable=self._extra_btn_var,
                           values=[t("btn_back_x1"), t("btn_forward_x2")], width=160, **T.option_menu_style())
@@ -139,21 +136,33 @@ class TabAutoClick(ctk.CTkFrame):
         self._captured_mouse_btn = ctk.StringVar(value="")
         self._mouse_btn_display = ctk.CTkLabel(
             self._frame_extra, text="", width=80,
-            font=T.FONT_MONO, text_color=T.NEON_PURPLE,
-            fg_color=T.BG_INPUT, corner_radius=T.CORNER_RADIUS_SM,
+            font=T.FONT_MONO, text_color=T.neon_purple(),
+            fg_color=T.bg_input(), corner_radius=T.CORNER_RADIUS_SM,
         )
         self._mouse_btn_display.pack(side="left", padx=(0, 8))
         self._capture_mouse_btn = ctk.CTkButton(
             self._frame_extra, text=t("btn_detect_btn"), width=130,
-            fg_color=T.BG_INPUT, hover_color=T.BG_CARD_HOVER,
-            border_width=1, border_color=T.NEON_PURPLE,
-            text_color=T.NEON_PURPLE, font=T.FONT_SMALL,
+            fg_color=T.bg_input(), hover_color=T.bg_card_hover(),
+            border_width=1, border_color=T.neon_purple(),
+            text_color=T.neon_purple(), font=T.FONT_SMALL,
             command=self._start_mouse_btn_capture,
         )
         self._capture_mouse_btn.pack(side="left")
 
+        # Tipo de acción (universal — para todos los modos)
+        self._frame_type = ctk.CTkFrame(body, fg_color="transparent")
+        self._frame_type.pack(fill="x", pady=4)
+        self._lbl_type = ctk.CTkLabel(self._frame_type, text=t("label_type"), font=T.FONT_BODY, text_color=T.text_secondary())
+        self._lbl_type.pack(side="left", padx=(0, 8))
+        self._type_menu = ctk.CTkOptionMenu(
+            self._frame_type, variable=self._click_type_var,
+            values=[t("click_single"), t("click_double"), t("click_triple"), t("click_hold")],
+            width=120, **T.option_menu_style(),
+        )
+        self._type_menu.pack(side="left")
+
         # ── Intervalo ──
-        sec = self._section(scroll, "sec_interval", "⏱")
+        sec = self._section(scroll, "sec_interval", "\u23F1")
         body = ctk.CTkFrame(sec, fg_color="transparent")
         body.pack(fill="x", padx=14, pady=(4, 10))
 
@@ -166,15 +175,16 @@ class TabAutoClick(ctk.CTkFrame):
 
         row_rand = ctk.CTkFrame(body, fg_color="transparent")
         row_rand.pack(fill="x", pady=(6, 0))
-        self._lbl_rand = ctk.CTkLabel(row_rand, text=t("random_variation"), font=T.FONT_BODY, text_color=T.TEXT_SECONDARY)
+        self._lbl_rand = ctk.CTkLabel(row_rand, text=t("random_variation"), font=T.FONT_BODY, text_color=T.text_secondary())
         self._lbl_rand.pack(side="left", padx=(0, 8))
         self._rand_ms = ctk.StringVar(value="0")
         self._rand_ms_entry = ctk.CTkEntry(row_rand, width=60, textvariable=self._rand_ms, justify="center", **T.input_style())
         self._rand_ms_entry.pack(side="left", padx=(0, 4))
-        ctk.CTkLabel(row_rand, text="ms  (±)", font=T.FONT_SMALL, text_color=T.TEXT_MUTED).pack(side="left")
+        self._lbl_rand_ms = ctk.CTkLabel(row_rand, text="ms  (\u00B1)", font=T.FONT_SMALL, text_color=T.text_muted())
+        self._lbl_rand_ms.pack(side="left")
 
         # ── Duración ──
-        sec = self._section(scroll, "sec_duration", "⏳")
+        sec = self._section(scroll, "sec_duration", "\u23F3")
         body = ctk.CTkFrame(sec, fg_color="transparent")
         body.pack(fill="x", padx=14, pady=(4, 10))
 
@@ -182,10 +192,10 @@ class TabAutoClick(ctk.CTkFrame):
         row = ctk.CTkFrame(body, fg_color="transparent")
         row.pack(fill="x", pady=2)
         self._rb_inf = ctk.CTkRadioButton(row, text=t("radio_infinite"), variable=self._dur_var, value="infinito",
-                           command=self._toggle_duration, **T.radio_style(T.NEON_PURPLE))
+                           command=self._toggle_duration, **T.radio_style(T.neon_purple()))
         self._rb_inf.pack(side="left", padx=(0, 20))
         self._rb_time = ctk.CTkRadioButton(row, text=t("radio_by_time"), variable=self._dur_var, value="tiempo",
-                           command=self._toggle_duration, **T.radio_style(T.NEON_PURPLE))
+                           command=self._toggle_duration, **T.radio_style(T.neon_purple()))
         self._rb_time.pack(side="left")
 
         self._frame_dur_time = ctk.CTkFrame(body, fg_color="transparent")
@@ -196,7 +206,7 @@ class TabAutoClick(ctk.CTkFrame):
         self._toggle_duration()
 
         # ── Posición ──
-        sec = self._section(scroll, "sec_position", "📍")
+        sec = self._section(scroll, "sec_position", "\U0001F4CD")
         body = ctk.CTkFrame(sec, fg_color="transparent")
         body.pack(fill="x", padx=14, pady=(4, 10))
 
@@ -204,31 +214,33 @@ class TabAutoClick(ctk.CTkFrame):
         row = ctk.CTkFrame(body, fg_color="transparent")
         row.pack(fill="x", pady=2)
         self._rb_cursor = ctk.CTkRadioButton(row, text=t("radio_follow_cursor"), variable=self._pos_var, value="cursor",
-                           command=self._toggle_pos, **T.radio_style(T.NEON_YELLOW))
+                           command=self._toggle_pos, **T.radio_style(T.neon_yellow()))
         self._rb_cursor.pack(side="left", padx=(0, 12))
         self._rb_fixed = ctk.CTkRadioButton(row, text=t("radio_fixed_pos"), variable=self._pos_var, value="fija",
-                           command=self._toggle_pos, **T.radio_style(T.NEON_YELLOW))
+                           command=self._toggle_pos, **T.radio_style(T.neon_yellow()))
         self._rb_fixed.pack(side="left", padx=(0, 12))
         self._rb_zone = ctk.CTkRadioButton(row, text=t("radio_random_zone"), variable=self._pos_var, value="zona",
-                           command=self._toggle_pos, **T.radio_style(T.NEON_YELLOW))
+                           command=self._toggle_pos, **T.radio_style(T.neon_yellow()))
         self._rb_zone.pack(side="left")
 
         # Posición fija
         self._frame_pos_fixed = ctk.CTkFrame(body, fg_color="transparent")
         self._frame_pos_fixed.pack(fill="x", pady=4)
-        ctk.CTkLabel(self._frame_pos_fixed, text="X:", font=T.FONT_MONO, text_color=T.NEON_CYAN).pack(side="left")
+        self._lbl_x = ctk.CTkLabel(self._frame_pos_fixed, text="X:", font=T.FONT_MONO, text_color=T.neon_cyan())
+        self._lbl_x.pack(side="left")
         self._x_entry = ctk.CTkEntry(self._frame_pos_fixed, width=70, **T.input_style())
         self._x_entry.insert(0, "0")
         self._x_entry.pack(side="left", padx=(4, 12))
-        ctk.CTkLabel(self._frame_pos_fixed, text="Y:", font=T.FONT_MONO, text_color=T.NEON_CYAN).pack(side="left")
+        self._lbl_y = ctk.CTkLabel(self._frame_pos_fixed, text="Y:", font=T.FONT_MONO, text_color=T.neon_cyan())
+        self._lbl_y.pack(side="left")
         self._y_entry = ctk.CTkEntry(self._frame_pos_fixed, width=70, **T.input_style())
         self._y_entry.insert(0, "0")
         self._y_entry.pack(side="left", padx=(4, 12))
         self._pick_btn = ctk.CTkButton(
             self._frame_pos_fixed, text=t("btn_pick_pos"), width=110,
-            fg_color=T.BG_INPUT, hover_color=T.BG_CARD_HOVER,
-            border_width=1, border_color=T.NEON_YELLOW,
-            text_color=T.NEON_YELLOW, font=T.FONT_SMALL,
+            fg_color=T.bg_input(), hover_color=T.bg_card_hover(),
+            border_width=1, border_color=T.neon_yellow(),
+            text_color=T.neon_yellow(), font=T.FONT_SMALL,
             command=self._pick_position,
         )
         self._pick_btn.pack(side="left")
@@ -237,33 +249,35 @@ class TabAutoClick(ctk.CTkFrame):
         self._frame_zone = ctk.CTkFrame(body, fg_color="transparent")
         zone_row1 = ctk.CTkFrame(self._frame_zone, fg_color="transparent")
         zone_row1.pack(fill="x", pady=2)
-        self._lbl_from = ctk.CTkLabel(zone_row1, text=t("zone_from"), font=T.FONT_MONO, text_color=T.NEON_CYAN)
+        self._lbl_from = ctk.CTkLabel(zone_row1, text=t("zone_from"), font=T.FONT_MONO, text_color=T.neon_cyan())
         self._lbl_from.pack(side="left")
         self._zx1 = ctk.CTkEntry(zone_row1, width=65, **T.input_style())
         self._zx1.insert(0, "0")
         self._zx1.pack(side="left", padx=(4, 10))
-        ctk.CTkLabel(zone_row1, text="Y1:", font=T.FONT_MONO, text_color=T.NEON_CYAN).pack(side="left")
+        self._lbl_zy1 = ctk.CTkLabel(zone_row1, text="Y1:", font=T.FONT_MONO, text_color=T.neon_cyan())
+        self._lbl_zy1.pack(side="left")
         self._zy1 = ctk.CTkEntry(zone_row1, width=65, **T.input_style())
         self._zy1.insert(0, "0")
         self._zy1.pack(side="left", padx=(4, 10))
 
         zone_row2 = ctk.CTkFrame(self._frame_zone, fg_color="transparent")
         zone_row2.pack(fill="x", pady=2)
-        self._lbl_to = ctk.CTkLabel(zone_row2, text=t("zone_to"), font=T.FONT_MONO, text_color=T.NEON_CYAN)
+        self._lbl_to = ctk.CTkLabel(zone_row2, text=t("zone_to"), font=T.FONT_MONO, text_color=T.neon_cyan())
         self._lbl_to.pack(side="left")
         self._zx2 = ctk.CTkEntry(zone_row2, width=65, **T.input_style())
         self._zx2.insert(0, "500")
         self._zx2.pack(side="left", padx=(4, 10))
-        ctk.CTkLabel(zone_row2, text="Y2:", font=T.FONT_MONO, text_color=T.NEON_CYAN).pack(side="left")
+        self._lbl_zy2 = ctk.CTkLabel(zone_row2, text="Y2:", font=T.FONT_MONO, text_color=T.neon_cyan())
+        self._lbl_zy2.pack(side="left")
         self._zy2 = ctk.CTkEntry(zone_row2, width=65, **T.input_style())
         self._zy2.insert(0, "500")
         self._zy2.pack(side="left", padx=(4, 10))
 
         self._zone_pick_btn = ctk.CTkButton(
             self._frame_zone, text=t("btn_pick_zone"), width=180,
-            fg_color=T.BG_INPUT, hover_color=T.BG_CARD_HOVER,
-            border_width=1, border_color=T.NEON_YELLOW,
-            text_color=T.NEON_YELLOW, font=T.FONT_SMALL,
+            fg_color=T.bg_input(), hover_color=T.bg_card_hover(),
+            border_width=1, border_color=T.neon_yellow(),
+            text_color=T.neon_yellow(), font=T.FONT_SMALL,
             command=self._pick_zone,
         )
         self._zone_pick_btn.pack(anchor="w", pady=(4, 0))
@@ -272,12 +286,12 @@ class TabAutoClick(ctk.CTkFrame):
         # ── Botón principal ──
         self._start_btn = ctk.CTkButton(
             scroll, text=t("btn_start", hk=self._hk()), height=48,
-            **T.neon_btn_style(T.NEON_GREEN), command=self.toggle,
+            **T.neon_btn_style(T.neon_green()), command=self.toggle,
         )
         self._start_btn.pack(fill="x", padx=8, pady=(8, 4))
 
         # ── Scheduler ──
-        sec = self._section(scroll, "sec_scheduler", "🕐")
+        sec = self._section(scroll, "sec_scheduler", "\U0001F550")
         body = ctk.CTkFrame(sec, fg_color="transparent")
         body.pack(fill="x", padx=14, pady=(4, 10))
 
@@ -287,18 +301,21 @@ class TabAutoClick(ctk.CTkFrame):
         self._chk_sched = ctk.CTkCheckBox(
             row_sched, text=t("chk_schedule"), variable=self._sched_var,
             command=self._toggle_scheduler,
-            fg_color=T.NEON_PURPLE, hover_color=T.NEON_PURPLE + "88",
-            border_color=T.BORDER_DIM, text_color=T.TEXT_PRIMARY, font=T.FONT_BODY,
+            fg_color=T.neon_purple(), hover_color=T.neon_purple() + "88",
+            border_color=T.border_dim(), text_color=T.text_primary(), font=T.FONT_BODY,
         )
         self._chk_sched.pack(side="left", padx=(0, 8))
 
         self._sched_hour = ctk.StringVar(value="00")
         self._sched_min = ctk.StringVar(value="00")
-        ctk.CTkEntry(row_sched, width=45, textvariable=self._sched_hour, justify="center", **T.input_style()).pack(side="left", padx=(0, 2))
-        ctk.CTkLabel(row_sched, text=":", font=T.FONT_MONO, text_color=T.TEXT_MUTED).pack(side="left")
-        ctk.CTkEntry(row_sched, width=45, textvariable=self._sched_min, justify="center", **T.input_style()).pack(side="left", padx=(2, 8))
+        self._sched_h_entry = ctk.CTkEntry(row_sched, width=45, textvariable=self._sched_hour, justify="center", **T.input_style())
+        self._sched_h_entry.pack(side="left", padx=(0, 2))
+        self._sched_colon = ctk.CTkLabel(row_sched, text=":", font=T.FONT_MONO, text_color=T.text_muted())
+        self._sched_colon.pack(side="left")
+        self._sched_m_entry = ctk.CTkEntry(row_sched, width=45, textvariable=self._sched_min, justify="center", **T.input_style())
+        self._sched_m_entry.pack(side="left", padx=(2, 8))
 
-        self._sched_status = ctk.CTkLabel(row_sched, text="", font=T.FONT_SMALL, text_color=T.NEON_PURPLE)
+        self._sched_status = ctk.CTkLabel(row_sched, text="", font=T.FONT_SMALL, text_color=T.neon_purple())
         self._sched_status.pack(side="left")
         self._sched_after_id = None
 
@@ -307,13 +324,99 @@ class TabAutoClick(ctk.CTkFrame):
         Tooltip(self._zone_pick_btn, t("tip_random_zone"))
 
     def _make_spinbox(self, parent, label, default=0):
-        ctk.CTkLabel(parent, text=label, font=T.FONT_MONO, text_color=T.TEXT_MUTED).pack(side="left", padx=(10, 3))
+        lbl = ctk.CTkLabel(parent, text=label, font=T.FONT_MONO, text_color=T.text_muted())
+        lbl.pack(side="left", padx=(10, 3))
         var = ctk.StringVar(value=str(default))
-        ctk.CTkEntry(parent, width=58, textvariable=var, justify="center", **T.input_style()).pack(side="left", padx=(0, 4))
+        entry = ctk.CTkEntry(parent, width=58, textvariable=var, justify="center", **T.input_style())
+        entry.pack(side="left", padx=(0, 4))
+        if not hasattr(self, "_spinbox_entries"):
+            self._spinbox_entries = []
+            self._spinbox_labels = []
+        self._spinbox_entries.append(entry)
+        self._spinbox_labels.append(lbl)
         return var
 
     def _hk(self):
         return load_config().get("hotkey_autoclick", "F6")
+
+    def refresh_theme(self):
+        """Re-apply theme colors."""
+        self.configure(fg_color=T.bg())
+        self._scroll.configure(fg_color=T.bg())
+        for title_key, frame in self._sec_frames.items():
+            frame.configure(**T.card_style())
+        for key, (lbl, title_key, icon) in self._widgets.items():
+            lbl.configure(text_color=T.text_primary())
+        if not self._clicker.is_running:
+            self._start_btn.configure(**T.neon_btn_style(T.neon_green()))
+        else:
+            self._start_btn.configure(**T.neon_btn_style(T.neon_red()))
+        # Profile buttons
+        self._btn_load.configure(fg_color=T.bg_input(), hover_color=T.bg_card_hover(),
+                                 border_color=T.neon_cyan(), text_color=T.neon_cyan())
+        self._btn_save_p.configure(fg_color=T.bg_input(), hover_color=T.bg_card_hover(),
+                                   border_color=T.neon_green(), text_color=T.neon_green())
+        self._btn_del.configure(fg_color=T.bg_input(), hover_color=T.bg_card_hover(),
+                                border_color=T.neon_red(), text_color=T.neon_red())
+        self._profile_menu.configure(**T.option_menu_style())
+        self._profile_name_entry.configure(**T.input_style())
+        self._lbl_name.configure(text_color=T.text_muted())
+        # Action type
+        self._rb_mouse.configure(**T.radio_style())
+        self._rb_key.configure(**T.radio_style())
+        self._rb_extra.configure(**T.radio_style())
+        self._lbl_btn.configure(text_color=T.text_secondary())
+        self._btn_menu.configure(**T.option_menu_style())
+        self._lbl_type.configure(text_color=T.text_secondary())
+        self._type_menu.configure(**T.option_menu_style())
+        self._lbl_key.configure(text_color=T.text_secondary())
+        self._key_display.configure(fg_color=T.bg_input(), text_color=T.neon_yellow())
+        self._capture_btn.configure(fg_color=T.bg_input(), hover_color=T.bg_card_hover(),
+                                    border_color=T.neon_yellow(), text_color=T.neon_yellow())
+        self._lbl_extra.configure(text_color=T.text_secondary())
+        self._extra_menu.configure(**T.option_menu_style())
+        self._mouse_btn_display.configure(fg_color=T.bg_input(), text_color=T.neon_purple())
+        self._capture_mouse_btn.configure(fg_color=T.bg_input(), hover_color=T.bg_card_hover(),
+                                          border_color=T.neon_purple(), text_color=T.neon_purple())
+        # Interval
+        self._lbl_rand.configure(text_color=T.text_secondary())
+        self._rand_ms_entry.configure(**T.input_style())
+        self._lbl_rand_ms.configure(text_color=T.text_muted())
+        # Duration
+        self._rb_inf.configure(**T.radio_style(T.neon_purple()))
+        self._rb_time.configure(**T.radio_style(T.neon_purple()))
+        # Position
+        self._rb_cursor.configure(**T.radio_style(T.neon_yellow()))
+        self._rb_fixed.configure(**T.radio_style(T.neon_yellow()))
+        self._rb_zone.configure(**T.radio_style(T.neon_yellow()))
+        self._lbl_x.configure(text_color=T.neon_cyan())
+        self._lbl_y.configure(text_color=T.neon_cyan())
+        self._x_entry.configure(**T.input_style())
+        self._y_entry.configure(**T.input_style())
+        self._pick_btn.configure(fg_color=T.bg_input(), hover_color=T.bg_card_hover(),
+                                 border_color=T.neon_yellow(), text_color=T.neon_yellow())
+        self._lbl_from.configure(text_color=T.neon_cyan())
+        self._lbl_to.configure(text_color=T.neon_cyan())
+        self._lbl_zy1.configure(text_color=T.neon_cyan())
+        self._lbl_zy2.configure(text_color=T.neon_cyan())
+        self._zx1.configure(**T.input_style())
+        self._zy1.configure(**T.input_style())
+        self._zx2.configure(**T.input_style())
+        self._zy2.configure(**T.input_style())
+        self._zone_pick_btn.configure(fg_color=T.bg_input(), hover_color=T.bg_card_hover(),
+                                      border_color=T.neon_yellow(), text_color=T.neon_yellow())
+        # Spinbox entries (interval + duration)
+        for entry in self._spinbox_entries:
+            entry.configure(**T.input_style())
+        for lbl in self._spinbox_labels:
+            lbl.configure(text_color=T.text_muted())
+        # Scheduler
+        self._chk_sched.configure(fg_color=T.neon_purple(), border_color=T.border_dim(),
+                                   text_color=T.text_primary())
+        self._sched_h_entry.configure(**T.input_style())
+        self._sched_m_entry.configure(**T.input_style())
+        self._sched_colon.configure(text_color=T.text_muted())
+        self._sched_status.configure(text_color=T.neon_purple())
 
     # ── Language refresh ──
     def _refresh_lang(self):
@@ -351,14 +454,13 @@ class TabAutoClick(ctk.CTkFrame):
         btn_keys = ["btn_left", "btn_middle", "btn_right"]
         new_btn_vals = [t(k) for k in btn_keys]
         self._btn_menu.configure(values=new_btn_vals)
-        # Find which internal key matches old value and set new translated value
         _all_btn_translations = {STRINGS[k].get("es", ""): k for k in btn_keys}
         _all_btn_translations.update({STRINGS[k].get("en", ""): k for k in btn_keys})
         matched_key = _all_btn_translations.get(old_btn, "btn_left")
         self._button_var.set(t(matched_key))
 
         old_type = self._click_type_var.get()
-        type_keys = ["click_single", "click_double", "click_triple"]
+        type_keys = ["click_single", "click_double", "click_triple", "click_hold"]
         new_type_vals = [t(k) for k in type_keys]
         self._type_menu.configure(values=new_type_vals)
         _all_type_translations = {STRINGS[k].get("es", ""): k for k in type_keys}
@@ -394,6 +496,7 @@ class TabAutoClick(ctk.CTkFrame):
             self._frame_key.pack(fill="x", pady=4)
         elif mode == "extra":
             self._frame_extra.pack(fill="x", pady=4)
+        # _frame_type always stays packed — no change needed
 
     def _toggle_duration(self):
         state = "disabled" if self._dur_var.get() == "infinito" else "normal"
@@ -416,8 +519,8 @@ class TabAutoClick(ctk.CTkFrame):
     def _start_key_capture(self):
         from pynput import keyboard
         self._listening_key = True
-        self._capture_btn.configure(text=t("btn_capture_key_waiting"), state="disabled", border_color=T.NEON_GREEN)
-        self._key_display.configure(text="...", text_color=T.NEON_GREEN)
+        self._capture_btn.configure(text=t("btn_capture_key_waiting"), state="disabled", border_color=T.neon_green())
+        self._key_display.configure(text="...", text_color=T.neon_green())
 
         def on_press(key):
             if not self._listening_key:
@@ -430,8 +533,8 @@ class TabAutoClick(ctk.CTkFrame):
             else:
                 key_str = str(key)
             self._captured_key.set(key_str)
-            self.after(0, lambda: self._key_display.configure(text=key_str.upper(), text_color=T.NEON_YELLOW))
-            self.after(0, lambda: self._capture_btn.configure(text=t("btn_capture_key"), state="normal", border_color=T.NEON_YELLOW))
+            self.after(0, lambda: self._key_display.configure(text=key_str.upper(), text_color=T.neon_yellow()))
+            self.after(0, lambda: self._capture_btn.configure(text=t("btn_capture_key"), state="normal", border_color=T.neon_yellow()))
             return False
 
         listener = keyboard.Listener(on_press=on_press)
@@ -440,8 +543,8 @@ class TabAutoClick(ctk.CTkFrame):
 
     def _start_mouse_btn_capture(self):
         from pynput.mouse import Listener, Button
-        self._capture_mouse_btn.configure(text=t("btn_detect_btn_waiting"), state="disabled", border_color=T.NEON_GREEN)
-        self._mouse_btn_display.configure(text="...", text_color=T.NEON_GREEN)
+        self._capture_mouse_btn.configure(text=t("btn_detect_btn_waiting"), state="disabled", border_color=T.neon_green())
+        self._mouse_btn_display.configure(text="...", text_color=T.neon_green())
         self._listening_mouse = True
 
         btn_names = {
@@ -457,9 +560,9 @@ class TabAutoClick(ctk.CTkFrame):
             name = btn_names.get(button, str(button))
             self._captured_mouse_btn.set(name)
             self._extra_btn_var.set(name)
-            self.after(0, lambda: self._mouse_btn_display.configure(text=name.upper(), text_color=T.NEON_PURPLE))
+            self.after(0, lambda: self._mouse_btn_display.configure(text=name.upper(), text_color=T.neon_purple()))
             self.after(0, lambda: self._capture_mouse_btn.configure(
-                text=t("btn_detect_btn"), state="normal", border_color=T.NEON_PURPLE))
+                text=t("btn_detect_btn"), state="normal", border_color=T.neon_purple()))
             return False
 
         listener = Listener(on_click=on_click)
@@ -541,7 +644,7 @@ class TabAutoClick(ctk.CTkFrame):
     def toggle(self):
         if self._clicker.is_running:
             self._clicker.stop()
-            self._start_btn.configure(text=t("btn_start", hk=self._hk()), **T.neon_btn_style(T.NEON_GREEN))
+            self._start_btn.configure(text=t("btn_start", hk=self._hk()), **T.neon_btn_style(T.neon_green()))
             if self._countdown_id:
                 self.after_cancel(self._countdown_id)
                 self._countdown_id = None
@@ -558,7 +661,7 @@ class TabAutoClick(ctk.CTkFrame):
             return
         self._start_btn.configure(
             text=t("countdown", n=n),
-            fg_color=T.NEON_YELLOW, hover_color=T.NEON_YELLOW, text_color=T.BG_DARK,
+            fg_color=T.neon_yellow(), hover_color=T.neon_yellow(), text_color=T.BG_DARK,
         )
         self._countdown_id = self.after(1000, lambda: self._start_countdown(n - 1))
 
@@ -570,13 +673,13 @@ class TabAutoClick(ctk.CTkFrame):
         duration_ms = self._get_duration_ms()
         random_interval_ms = int(self._rand_ms.get() or 0)
 
-        # Reverse maps: translated display text → internal key
         btn_rev = {
             t("btn_left"): "left", t("btn_middle"): "middle", t("btn_right"): "right",
             t("btn_back_x1"): "x1", t("btn_forward_x2"): "x2",
         }
         type_rev = {
-            t("click_single"): "single", t("click_double"): "double", t("click_triple"): "triple",
+            t("click_single"): "single", t("click_double"): "double",
+            t("click_triple"): "triple", t("click_hold"): "hold",
         }
 
         custom_key = None
@@ -609,14 +712,13 @@ class TabAutoClick(ctk.CTkFrame):
             duration_ms=duration_ms, fixed_pos=fixed_pos, click_type=click_type,
             random_zone=random_zone, random_interval_ms=random_interval_ms,
         )
-        self._start_btn.configure(text=t("btn_stop", hk=self._hk()), **T.neon_btn_style(T.NEON_RED))
+        self._start_btn.configure(text=t("btn_stop", hk=self._hk()), **T.neon_btn_style(T.neon_red()))
         if duration_ms > 0:
             self.after(duration_ms + 200, self._check_stopped)
 
     def _check_stopped(self):
         if not self._clicker.is_running:
-            self._start_btn.configure(text=t("btn_start", hk=self._hk()), **T.neon_btn_style(T.NEON_GREEN))
-            # Sound notification when auto-click by duration finishes
+            self._start_btn.configure(text=t("btn_start", hk=self._hk()), **T.neon_btn_style(T.neon_green()))
             try:
                 config = load_config()
                 if config.get("notify_on_finish", True):
