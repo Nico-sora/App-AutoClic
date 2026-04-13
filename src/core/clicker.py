@@ -61,45 +61,76 @@ class Clicker:
         start_time = time.perf_counter()
         click_count_map = {"single": 1, "double": 2, "triple": 3}
         n_clicks = click_count_map.get(click_type, 1)
+        is_hold = (click_type == "hold")
 
-        while self._running.is_set():
-            if duration_ms > 0:
-                elapsed = (time.perf_counter() - start_time) * 1000
-                if elapsed >= duration_ms:
-                    break
-
-            # Posición
-            if random_zone:
-                x1, y1, x2, y2 = random_zone
-                rx = random.randint(min(x1, x2), max(x1, x2))
-                ry = random.randint(min(y1, y2), max(y1, y2))
-                self._mouse.position = (rx, ry)
-            elif fixed_pos:
-                self._mouse.position = fixed_pos
-
-            # Acción
+        # ── Hold: press once before loop ──
+        if is_hold:
             if custom_key:
-                self._press_key(custom_key)
-                self.click_count += 1
+                self._hold_key(custom_key, press=True)
             else:
                 btn = BUTTON_MAP.get(button, Button.left)
-                self._mouse.click(btn, n_clicks)
-                self.click_count += 1
+                self._mouse.press(btn)
 
-            # Intervalo con variación aleatoria
-            if random_interval_ms > 0:
-                variation = random.randint(-random_interval_ms, random_interval_ms) / 1000.0
-                actual_interval = max(0.01, interval + variation)
-            else:
-                actual_interval = interval
+        try:
+            while self._running.is_set():
+                if duration_ms > 0:
+                    elapsed = (time.perf_counter() - start_time) * 1000
+                    if elapsed >= duration_ms:
+                        break
 
-            remaining = actual_interval
-            while remaining > 0 and self._running.is_set():
-                sleep_time = min(remaining, 0.05)
-                time.sleep(sleep_time)
-                remaining -= sleep_time
+                if not is_hold:
+                    # Posición
+                    if random_zone:
+                        x1, y1, x2, y2 = random_zone
+                        rx = random.randint(min(x1, x2), max(x1, x2))
+                        ry = random.randint(min(y1, y2), max(y1, y2))
+                        self._mouse.position = (rx, ry)
+                    elif fixed_pos:
+                        self._mouse.position = fixed_pos
+
+                    # Acción
+                    if custom_key:
+                        self._press_key(custom_key)
+                        self.click_count += 1
+                    else:
+                        btn = BUTTON_MAP.get(button, Button.left)
+                        self._mouse.click(btn, n_clicks)
+                        self.click_count += 1
+
+                # Intervalo con variación aleatoria
+                if random_interval_ms > 0:
+                    variation = random.randint(-random_interval_ms, random_interval_ms) / 1000.0
+                    actual_interval = max(0.01, interval + variation)
+                else:
+                    actual_interval = interval
+
+                remaining = actual_interval
+                while remaining > 0 and self._running.is_set():
+                    sleep_time = min(remaining, 0.05)
+                    time.sleep(sleep_time)
+                    remaining -= sleep_time
+        finally:
+            # ── Hold: release on exit ──
+            if is_hold:
+                if custom_key:
+                    self._hold_key(custom_key, press=False)
+                else:
+                    btn = BUTTON_MAP.get(button, Button.left)
+                    self._mouse.release(btn)
 
         self._running.clear()
+
+    def _hold_key(self, key_str: str, press: bool) -> None:
+        action = self._kb.press if press else self._kb.release
+        if len(key_str) == 1:
+            action(key_str)
+        else:
+            try:
+                k = getattr(Key, key_str.lower(), None)
+                if k:
+                    action(k)
+            except Exception:
+                pass
 
     def _press_key(self, key_str: str) -> None:
         if len(key_str) == 1:
