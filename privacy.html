@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoClic – Privacy Policy</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 720px;
+      margin: 60px auto;
+      padding: 0 24px;
+      color: #e0e0e0;
+      background: #121212;
+      line-height: 1.7;
+    }
+    h1 { color: #00FF88; font-size: 2rem; margin-bottom: 4px; }
+    h2 { color: #00D4FF; font-size: 1.1rem; margin-top: 32px; }
+    a  { color: #00D4FF; }
+    p, li { color: #b0b0b0; }
+    .updated { color: #666; font-size: 0.85rem; margin-top: 0; }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+
+  <h1>AutoClic</h1>
+  <p class="updated">Privacy Policy &mdash; Last updated: April 2026</p>
+
+  <h2>Overview</h2>
+  <p>
+    AutoClic is a free, open-source auto-clicker application for Windows.
+    This policy explains what data AutoClic accesses and how it is handled.
+  </p>
+
+  <h2>Data Collection</h2>
+  <p><strong>AutoClic does not collect, store, or transmit any personal data.</strong></p>
+  <ul>
+    <li>No data is sent to any server or third party.</li>
+    <li>No analytics, telemetry, or crash reporting is included.</li>
+    <li>No account or registration is required.</li>
+  </ul>
+
+  <h2>Keyboard and Mouse Input</h2>
+  <p>
+    AutoClic uses global keyboard and mouse hooks (<code>pynput</code>) solely to:
+  </p>
+  <ul>
+    <li>Detect hotkey presses configured by the user (e.g. start/stop autoclick).</li>
+    <li>Simulate mouse clicks and key presses as directed by the user.</li>
+    <li>Record and replay mouse/keyboard macros when the user activates recording.</li>
+  </ul>
+  <p>
+    This input data is processed entirely on your local device and is never stored
+    permanently or transmitted outside your computer.
+    Macros are saved locally only when the user explicitly chooses to save them.
+  </p>
+
+  <h2>Local Storage</h2>
+  <p>
+    AutoClic stores configuration and profiles in:
+    <code>%APPDATA%\AutoClic Gz\</code><br/>
+    This data stays on your device and is never shared.
+  </p>
+
+  <h2>Third-Party Services</h2>
+  <p>AutoClic does not integrate with any third-party service, SDK, or API.</p>
+
+  <h2>Children</h2>
+  <p>AutoClic is not directed at children and does not knowingly collect data from anyone.</p>
+
+  <h2>Changes to This Policy</h2>
+  <p>
+    Any future changes will be reflected on this page with an updated date.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Questions? Open an issue on
+    <a href="https://github.com/Nico-sora/App-AutoClic" target="_blank">GitHub</a>.
+  </p>
+
+</body>
+</html>
